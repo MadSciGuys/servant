@@ -23,6 +23,8 @@ module Servant.API (
   -- | Is the request made through HTTPS?
   module Servant.API.Vault,
   -- | Access the location for arbitrary data to be shared by applications and middleware
+  module Servant.API.Files,
+  -- | Retrieving file data from a multipart form submission
 
   -- * Actual endpoints, distinguished by HTTP method
   module Servant.API.Get,
@@ -84,6 +86,7 @@ import           Servant.API.ResponseHeaders (AddHeader (addHeader),
                                               getHeadersHList, getResponse)
 import           Servant.API.Sub             ((:>))
 import           Servant.API.Vault           (Vault)
+import           Servant.API.Files           (Files)
 import           Web.HttpApiData             (FromHttpApiData (..), ToHttpApiData (..))
 import           Servant.Utils.Links         (HasLink (..), IsElem, IsElem',
                                               URI (..), safeLink)

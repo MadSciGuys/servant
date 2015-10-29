@@ -43,7 +43,8 @@ import           Servant.API                 ((:<|>) (..), (:>), Capture,
                                               Delete, Get, Header,
                                               IsSecure(..), Patch, Post, Put,
                                               QueryFlag, QueryParam, QueryParams,
-                                              Raw, RemoteHost, ReqBody, Vault)
+                                              Raw, RemoteHost, ReqBody, Vault,
+                                              Files)
 import           Servant.API.ContentTypes    (AcceptHeader (..),
                                               AllCTRender (..),
                                               AllCTUnrender (..),
@@ -58,6 +59,13 @@ import           Servant.Server.Internal.ServantErr
 
 import           Web.HttpApiData          (FromHttpApiData)
 import           Web.HttpApiData.Internal (parseUrlPieceMaybe, parseHeaderMaybe, parseQueryParamMaybe)
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Either
+import Control.Monad.Trans.Resource
+import Data.ByteString.Lazy (ByteString)
+import Network.Wai
+import Network.Wai.Parse
+
 
 class HasServer layout where
   type ServerT layout (m :: * -> *) :: *
@@ -663,3 +671,12 @@ pathIsEmpty = go . pathInfo
 
 ct_wildcard :: B.ByteString
 ct_wildcard = "*" <> "/" <> "*" -- Because CPP
+
+type MultiPartData = ([Param], [File ByteString])
+
+instance (HasServer api) => HasServer (Files :> api) where
+  type ServerT (Files :> api) m =
+    MultiPartData -> ServerT api m
+
+  route Proxy subserver = WithRequest $ \req ->
+    route (Proxy :: Proxy api) $ addBodyCheck subserver $ fmap Route $ parseRequestBody lbsBackEnd req
